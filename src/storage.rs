@@ -44,7 +44,6 @@ pub struct LocalStorageImpl;
 #[cfg(target_arch = "wasm32")]
 impl Storage for LocalStorageImpl {
     fn read(&self, key: &str) -> Result<Vec<u8>> {
-        use wasm_bindgen::JsValue;
         let window = web_sys::window().ok_or(anyhow::anyhow!("No window"))?;
         let storage = window
             .local_storage()

@@ -1,9 +1,10 @@
 use crate::storage::{FileStorage, Storage};
+use crate::CommandResult;
 use anyhow::{Context, Result};
 use rand_chacha::ChaCha20Rng;
 use schnorr_fun::binonce::NonceKeyPair;
 use schnorr_fun::frost::{self, PairedSecretShare, SharedKey};
-use schnorr_fun::Message;
+use schnorr_fun::{Message, Signature};
 use secp256kfun::prelude::*;
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
@@ -58,7 +59,7 @@ pub struct SignatureShareData {
     pub share: String,
 }
 
-pub fn generate_nonce_core(session: &str, storage: &dyn Storage) -> Result<String> {
+pub fn generate_nonce_core(session: &str, storage: &dyn Storage) -> Result<CommandResult> {
     let mut out = String::new();
 
     out.push_str("FROST Signing - Nonce Generation\n\n");
@@ -121,18 +122,9 @@ pub fn generate_nonce_core(session: &str, storage: &dyn Storage) -> Result<Strin
     let public_nonce_hex = hex::encode(&public_nonce_bytes);
 
     out.push_str("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    out.push_str("✉️  Your public nonce (copy this JSON):\n\n");
+    out.push_str("✉️  Your public nonce generated!\n\n");
 
-    let output = NonceOutput {
-        party_index: party_index,
-        session: session.to_string(),
-        nonce: public_nonce_hex,
-        event_type: "signing_nonce".to_string(),
-    };
-
-    out.push_str(&format!("{}\n\n", serde_json::to_string_pretty(&output)?));
-    out.push_str("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    out.push_str("\n➜ Paste this JSON into the webpage\n");
+    out.push_str("➜ Paste the result JSON into the webpage\n");
     out.push_str("➜ Wait for threshold number of signers to post nonces\n");
     out.push_str(&format!(
         "➜ Copy the \"nonces for session {}\" JSON from webpage\n",
@@ -143,13 +135,25 @@ pub fn generate_nonce_core(session: &str, storage: &dyn Storage) -> Result<Strin
         session
     ));
 
-    Ok(out)
+    // Create JSON result for copy-pasting
+    let output = NonceOutput {
+        party_index: party_index,
+        session: session.to_string(),
+        nonce: public_nonce_hex,
+        event_type: "signing_nonce".to_string(),
+    };
+    let result = serde_json::to_string(&output)?;
+
+    Ok(CommandResult { output: out, result })
 }
 
 pub fn generate_nonce(session: &str) -> Result<()> {
     let storage = FileStorage::new(STATE_DIR)?;
-    let output = generate_nonce_core(session, &storage)?;
-    print!("{}", output);
+    let cmd_result = generate_nonce_core(session, &storage)?;
+    print!("{}\n", cmd_result.output);
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    println!("📋 Copy this JSON:");
+    println!("{}\n", cmd_result.result);
     Ok(())
 }
 
@@ -158,7 +162,7 @@ pub fn create_signature_share_core(
     message: &str,
     data: &str,
     storage: &dyn Storage,
-) -> Result<String> {
+) -> Result<CommandResult> {
     let mut out = String::new();
 
     out.push_str("🔐 FROST Signing - Create Signature Share\n\n");
@@ -325,8 +329,16 @@ pub fn create_signature_share_core(
     )?;
 
     out.push_str("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    out.push_str("✓ Your signature share (copy this JSON):\n\n");
+    out.push_str("✓ Your signature share generated!\n\n");
 
+    out.push_str("➜ Paste the result JSON into the webpage\n");
+    out.push_str("➜ Once all signers post shares, anyone can combine them\n");
+    out.push_str(&format!(
+        "➜ Run: cargo run -- combine --message \"{}\" --data '<shares JSON>'\n",
+        message
+    ));
+
+    // Create JSON result for copy-pasting
     let output = SignatureShareOutput {
         party_index,
         session: session.to_string(),
@@ -334,27 +346,22 @@ pub fn create_signature_share_core(
         signature_share: sig_share_hex,
         event_type: "signing_share".to_string(),
     };
+    let result = serde_json::to_string(&output)?;
 
-    out.push_str(&format!("{}\n\n", serde_json::to_string_pretty(&output)?));
-    out.push_str("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    out.push_str("\n➜ Paste this JSON into the webpage\n");
-    out.push_str("➜ Once all signers post shares, anyone can combine them\n");
-    out.push_str(&format!(
-        "➜ Run: cargo run -- combine --message \"{}\" --data '<shares JSON>'\n",
-        message
-    ));
-
-    Ok(out)
+    Ok(CommandResult { output: out, result })
 }
 
 pub fn create_signature_share(session: &str, message: &str, data: &str) -> Result<()> {
     let storage = FileStorage::new(STATE_DIR)?;
-    let output = create_signature_share_core(session, message, data, &storage)?;
-    print!("{}", output);
+    let cmd_result = create_signature_share_core(session, message, data, &storage)?;
+    print!("{}\n", cmd_result.output);
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    println!("📋 Copy this JSON:");
+    println!("{}\n", cmd_result.result);
     Ok(())
 }
 
-pub fn combine_signatures_core(data: &str, storage: &dyn Storage) -> Result<String> {
+pub fn combine_signatures_core(data: &str, storage: &dyn Storage) -> Result<CommandResult> {
     let mut out = String::new();
 
     out.push_str("🔐 FROST Signing - Combine Signature Shares\n\n");
@@ -481,14 +488,7 @@ pub fn combine_signatures_core(data: &str, storage: &dyn Storage) -> Result<Stri
 
     out.push_str("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
     out.push_str("🎉 FROST SIGNATURE VALID!\n\n");
-    out.push_str("Signature:\n");
-    out.push_str(&format!("  {}\n\n", sig_hex));
-    out.push_str("Public key:\n");
-    out.push_str(&format!("  {}\n\n", pubkey_hex));
-    out.push_str("Message:\n");
-    out.push_str(&format!("  \"{}\"\n\n", message));
-    out.push_str("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    out.push_str("\n✨ You just created a threshold signature using schnorr_fun's FROST!\n");
+    out.push_str("✨ You just created a threshold signature using schnorr_fun's FROST!\n");
     out.push_str("   - Used real cryptographic API from production library\n");
     out.push_str("   - Signature is valid under the shared public key\n");
     out.push_str("   - No single party knew the full secret key!\n\n");
@@ -500,12 +500,78 @@ pub fn combine_signatures_core(data: &str, storage: &dyn Storage) -> Result<Stri
     out.push_str("   • Git commits\n");
     out.push_str("   The same FROST key works for all of them!\n\n");
 
-    Ok(out)
+    // Create result with the signature details
+    let result = format!(
+        "Signature: {}\nPublic Key: {}\nMessage: \"{}\"",
+        sig_hex, pubkey_hex, message
+    );
+
+    Ok(CommandResult { output: out, result })
 }
 
 pub fn combine_signatures(data: &str) -> Result<()> {
     let storage = FileStorage::new(STATE_DIR)?;
-    let output = combine_signatures_core(data, &storage)?;
-    print!("{}", output);
+    let cmd_result = combine_signatures_core(data, &storage)?;
+    print!("{}\n", cmd_result.output);
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    println!("📋 Signature:");
+    println!("{}\n", cmd_result.result);
+    Ok(())
+}
+
+/// Verify a FROST signature
+pub fn verify_signature_core(
+    signature_hex: &str,
+    public_key_hex: &str,
+    message: &str,
+) -> Result<CommandResult> {
+    let mut out = String::new();
+
+    out.push_str("🔍 FROST Signature Verification\n\n");
+
+    // Decode signature
+    let sig_bytes = hex::decode(signature_hex)
+        .context("Failed to decode signature hex")?;
+    let signature: Signature = bincode::deserialize(&sig_bytes)
+        .context("Failed to deserialize signature")?;
+
+    // Decode public key
+    let pubkey_bytes = hex::decode(public_key_hex)
+        .context("Failed to decode public key hex")?;
+    let public_key: Point<EvenY> = bincode::deserialize(&pubkey_bytes)
+        .context("Failed to deserialize public key")?;
+
+    // Create message
+    let msg = Message::new("frostsnap-yushan", message.as_bytes());
+
+    out.push_str("📋 Verification inputs:\n");
+    out.push_str(&format!("   Message: \"{}\"\n", message));
+    out.push_str(&format!("   Signature: {}...\n", &signature_hex[..32]));
+    out.push_str(&format!("   Public Key: {}...\n\n", &public_key_hex[..32]));
+
+    // Verify signature
+    let frost = frost::new_with_deterministic_nonces::<Sha256>();
+    let is_valid = frost.schnorr.verify(&public_key, msg, &signature);
+
+    let result = if is_valid {
+        out.push_str("✅ SIGNATURE VALID!\n");
+        out.push_str("   The signature is cryptographically valid.\n");
+        out.push_str("   It was created by threshold parties holding the private key.\n");
+        "VALID".to_string()
+    } else {
+        out.push_str("❌ SIGNATURE INVALID!\n");
+        out.push_str("   The signature verification failed.\n");
+        out.push_str("   Either the signature, public key, or message is incorrect.\n");
+        "INVALID".to_string()
+    };
+
+    Ok(CommandResult { output: out, result })
+}
+
+pub fn verify_signature(signature_hex: &str, public_key_hex: &str, message: &str) -> Result<()> {
+    let cmd_result = verify_signature_core(signature_hex, public_key_hex, message)?;
+    print!("{}\n", cmd_result.output);
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    println!("📋 Result: {}\n", cmd_result.result);
     Ok(())
 }

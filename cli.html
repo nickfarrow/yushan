@@ -164,11 +164,54 @@
         }
       }
 
-      function showOutput(elementId, text) {
+      function showOutput(elementId, responseJson) {
         const elem = document.getElementById(elementId);
-        elem.textContent = text;
+
+        try {
+          // Parse the JSON response with output and result fields
+          const response = JSON.parse(responseJson);
+
+          // Create formatted display
+          let html = '<div class="output-container">';
+
+          // Educational output section
+          html += '<div class="educational-output">';
+          html += '<pre>' + response.output + '</pre>';
+          html += '</div>';
+
+          // Result section with copy button
+          if (response.result && response.result.trim()) {
+            html += '<div class="result-section">';
+            html += '<div class="result-header">📋 Copy this:</div>';
+            html += '<div class="result-box">' + response.result + '</div>';
+            html += '<button class="copy-btn" onclick="copyResult(\'' + elementId + '\')">Copy to Clipboard</button>';
+            html += '</div>';
+          }
+
+          html += '</div>';
+          elem.innerHTML = html;
+        } catch (e) {
+          // Fallback for non-JSON responses (errors, etc.)
+          elem.textContent = responseJson;
+        }
+
         elem.classList.remove("hidden");
       }
+
+      window.copyResult = function(elementId) {
+        const elem = document.getElementById(elementId);
+        const resultBox = elem.querySelector('.result-box');
+        if (resultBox) {
+          navigator.clipboard.writeText(resultBox.textContent).then(() => {
+            const btn = elem.querySelector('.copy-btn');
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Copied!';
+            setTimeout(() => {
+              btn.textContent = originalText;
+            }, 2000);
+          });
+        }
+      };
 
       window.runKeygenRound1 = async function () {
         try {

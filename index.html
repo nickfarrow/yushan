@@ -254,6 +254,48 @@
         </div>
       </div>
 
+      <!-- Signature Verifier -->
+      <h1>Signature Verifier</h1>
+      <div class="phase-section">
+        <div class="phase-header">
+          <div class="phase-title">Verify a FROST Signature</div>
+        </div>
+
+        <div class="post-box">
+          <div class="post-label">Signature (hex)</div>
+          <textarea
+            class="post-textarea"
+            id="verify-signature"
+            placeholder="Paste signature hex here..."
+          ></textarea>
+        </div>
+
+        <div class="post-box">
+          <div class="post-label">Public Key (hex)</div>
+          <textarea
+            class="post-textarea"
+            id="verify-pubkey"
+            placeholder="Paste public key hex here..."
+          ></textarea>
+        </div>
+
+        <div class="post-box">
+          <div class="post-label">Message</div>
+          <input
+            type="text"
+            id="verify-message"
+            placeholder="The message that was signed..."
+            style="width: 100%; padding: 10px; background: var(--bg-primary); border: 1px solid var(--secondary); color: var(--primary); border-radius: 15px;"
+          />
+        </div>
+
+        <button class="btn" onclick="verifySignature()">Verify Signature</button>
+
+        <div id="verify-output" class="entries-container" style="margin-top: 20px; display: none;">
+          <div class="entry" id="verify-result"></div>
+        </div>
+      </div>
+
       <div class="footer-logo">
         <img
           src="https://frostsnap.com/assets/small-stay-frosty.svg"
@@ -269,6 +311,8 @@
         getPublicKey,
         finalizeEvent,
       } from "https://esm.sh/nostr-tools@2.7.2";
+
+      import init, { wasm_verify } from "./pkg/yushan.js";
 
       const RELAYS = [
         "wss://relay.damus.io",
@@ -309,6 +353,14 @@
           return;
         }
 
+        // Reset connection status
+        connected = false;
+        document
+          .getElementById("status-indicator")
+          .classList.remove("connected");
+        document.getElementById("status-text").textContent = "Disconnected";
+        document.getElementById("status-text").style.color = "";
+
         // Unsubscribe from previous room
         if (currentSub) {
           currentSub.close();
@@ -336,17 +388,6 @@
           ],
           {
             onevent(event) {
-              if (!connected) {
-                connected = true;
-                document
-                  .getElementById("status-indicator")
-                  .classList.add("connected");
-                document.getElementById("status-text").textContent =
-                  "Connected";
-                document.getElementById("status-text").style.color =
-                  "#01b3b9e9";
-              }
-
               try {
                 const data = JSON.parse(event.content);
                 processEvent(data, event);
@@ -359,6 +400,14 @@
             },
           }
         );
+
+        // Update status to connected immediately after subscribing
+        connected = true;
+        document
+          .getElementById("status-indicator")
+          .classList.add("connected");
+        document.getElementById("status-text").textContent = "Connected";
+        document.getElementById("status-text").style.color = "#01b3b9e9";
 
         refreshUI();
       };
@@ -574,9 +623,58 @@
         }
       };
 
+      // Signature verification
+      let wasmInitialized = false;
+
+      async function initWasm() {
+        if (!wasmInitialized) {
+          try {
+            await init();
+            wasmInitialized = true;
+            console.log("WASM loaded for signature verification");
+          } catch (e) {
+            console.error("Failed to load WASM:", e);
+          }
+        }
+      }
+
+      window.verifySignature = async function() {
+        const signature = document.getElementById("verify-signature").value.trim();
+        const pubkey = document.getElementById("verify-pubkey").value.trim();
+        const message = document.getElementById("verify-message").value.trim();
+
+        if (!signature || !pubkey || !message) {
+          alert("Please fill in all fields");
+          return;
+        }
+
+        // Initialize WASM if needed
+        await initWasm();
+
+        try {
+          const resultJson = wasm_verify(signature, pubkey, message);
+          const result = JSON.parse(resultJson);
+
+          const outputDiv = document.getElementById("verify-output");
+          const resultDiv = document.getElementById("verify-result");
+
+          const isValid = result.result === "VALID";
+          resultDiv.innerHTML = `
+            <div style="white-space: pre-wrap; font-family: Monaco, monospace; ${isValid ? 'color: #00ff00;' : 'color: #ff6b6b;'}">
+              ${result.output}
+            </div>
+          `;
+          outputDiv.style.display = "block";
+        } catch (e) {
+          alert("Verification error: " + e);
+          console.error("Verification error:", e);
+        }
+      };
+
       // Auto-connect on load with default values
       window.addEventListener("load", () => {
         updateConfig();
+        initWasm(); // Pre-load WASM for verifier
       });
     </script>
   </body>

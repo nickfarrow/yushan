@@ -1,4 +1,5 @@
 use crate::storage::{FileStorage, Storage};
+use crate::CommandResult;
 use anyhow::{Context, Result};
 use schnorr_fun::frost::{
     self,
@@ -139,7 +140,7 @@ pub fn round1_core(
     n_parties: u32,
     my_index: u32,
     storage: &dyn Storage,
-) -> Result<String> {
+) -> Result<CommandResult> {
     let mut out = String::new();
 
     out.push_str("FROST Keygen - Round 1\n\n");
@@ -261,20 +262,9 @@ pub fn round1_core(
     )?;
 
     out.push_str("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    out.push_str("✉️  Your commitment (copy this JSON):\n");
-    out.push_str("   Note: The CLI accepts space-separated JSON objects.\n");
-    out.push_str("   You can combine outputs from all parties like:\n");
-    out.push_str("   '{...party1...} {...party2...} {...party3...}'\n\n");
+    out.push_str("✉️  Your commitment generated!\n\n");
 
-    let output = Round1Output {
-        party_index: my_index,
-        keygen_input: keygen_input_hex,
-        event_type: "keygen_round1".to_string(),
-    };
-
-    out.push_str(&format!("{}\n\n", serde_json::to_string_pretty(&output)?));
-    out.push_str("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    out.push_str("\n➜ Paste this JSON into the webpage\n");
+    out.push_str("➜ Paste the result JSON into the webpage\n");
     out.push_str(&format!(
         "➜ Wait for all {} parties to post their commitments\n",
         n_parties
@@ -282,17 +272,28 @@ pub fn round1_core(
     out.push_str("➜ Copy the \"all commitments\" JSON from webpage\n");
     out.push_str("➜ Run: cargo run -- keygen-round2 --data '<JSON>'\n");
 
-    Ok(out)
+    // Create JSON result for copy-pasting
+    let output = Round1Output {
+        party_index: my_index,
+        keygen_input: keygen_input_hex,
+        event_type: "keygen_round1".to_string(),
+    };
+    let result = serde_json::to_string(&output)?;
+
+    Ok(CommandResult { output: out, result })
 }
 
 pub fn round1(threshold: u32, n_parties: u32, my_index: u32) -> Result<()> {
     let storage = FileStorage::new(STATE_DIR)?;
-    let output = round1_core(threshold, n_parties, my_index, &storage)?;
-    print!("{}", output);
+    let cmd_result = round1_core(threshold, n_parties, my_index, &storage)?;
+    print!("{}\n", cmd_result.output);
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    println!("📋 Copy this JSON:");
+    println!("{}\n", cmd_result.result);
     Ok(())
 }
 
-pub fn round2_core(data: &str, storage: &dyn Storage) -> Result<String> {
+pub fn round2_core(data: &str, storage: &dyn Storage) -> Result<CommandResult> {
     let mut out = String::new();
 
     out.push_str("FROST Keygen - Round 2\n\n");
@@ -391,17 +392,9 @@ pub fn round2_core(data: &str, storage: &dyn Storage) -> Result<String> {
     }
 
     out.push_str("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    out.push_str(" Your shares (copy this JSON):\n\n");
+    out.push_str("✉️  Your shares generated!\n\n");
 
-    let output = Round2Output {
-        party_index: state.my_index,
-        shares,
-        event_type: "keygen_round2".to_string(),
-    };
-
-    out.push_str(&format!("{}\n\n", serde_json::to_string_pretty(&output)?));
-    out.push_str("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    out.push_str("\n➜ Paste this JSON into the webpage\n");
+    out.push_str("➜ Paste the result JSON into the webpage\n");
     out.push_str("➜ Wait for all parties to post their shares\n");
     out.push_str(&format!(
         "➜ Copy \"shares for Party {}\" JSON from webpage\n",
@@ -412,17 +405,28 @@ pub fn round2_core(data: &str, storage: &dyn Storage) -> Result<String> {
     // Save all commitments for validation
     storage.write("all_commitments.json", data.as_bytes())?;
 
-    Ok(out)
+    // Create JSON result for copy-pasting
+    let output = Round2Output {
+        party_index: state.my_index,
+        shares,
+        event_type: "keygen_round2".to_string(),
+    };
+    let result = serde_json::to_string(&output)?;
+
+    Ok(CommandResult { output: out, result })
 }
 
 pub fn round2(data: &str) -> Result<()> {
     let storage = FileStorage::new(STATE_DIR)?;
-    let output = round2_core(data, &storage)?;
-    print!("{}", output);
+    let cmd_result = round2_core(data, &storage)?;
+    print!("{}\n", cmd_result.output);
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    println!("📋 Copy this JSON:");
+    println!("{}\n", cmd_result.result);
     Ok(())
 }
 
-pub fn finalize_core(data: &str, storage: &dyn Storage) -> Result<String> {
+pub fn finalize_core(data: &str, storage: &dyn Storage) -> Result<CommandResult> {
     let mut out = String::new();
 
     out.push_str("FROST Keygen - Finalize\n\n");
@@ -548,20 +552,24 @@ pub fn finalize_core(data: &str, storage: &dyn Storage) -> Result<String> {
     storage.write("shared_key.bin", &public_key_bytes)?;
 
     out.push_str("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    out.push_str(" YOUR SECRET SHARE (keep this safe!):\n");
-    out.push_str(&format!("  {}\n\n", final_share_hex));
-    out.push_str(" SHARED PUBLIC KEY:\n");
-    out.push_str(&format!("  {}\n\n", public_key_hex));
-    out.push_str("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    out.push_str("\n❄️  Key generation complete!\n");
+    out.push_str("❄️  Key generation complete!\n");
     out.push_str("   Compare public keys with other tables to verify!\n\n");
 
-    Ok(out)
+    // Create result with the keys
+    let result = format!(
+        "Secret Share: {}\nPublic Key: {}",
+        final_share_hex, public_key_hex
+    );
+
+    Ok(CommandResult { output: out, result })
 }
 
 pub fn finalize(data: &str) -> Result<()> {
     let storage = FileStorage::new(STATE_DIR)?;
-    let output = finalize_core(data, &storage)?;
-    print!("{}", output);
+    let cmd_result = finalize_core(data, &storage)?;
+    print!("{}\n", cmd_result.output);
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    println!("📋 Your keys:");
+    println!("{}\n", cmd_result.result);
     Ok(())
 }

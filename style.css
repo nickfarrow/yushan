@@ -16,12 +16,12 @@
 }
 
 body {
-  background-color: var(--bg-primary);
-  background-image: linear-gradient(
+  background-color: var(--bg-secondary);
+  /* background-image: linear-gradient(
     to bottom,
     var(--bg-secondary),
     var(--bg-primary)
-  );
+  ); */
   color: var(--primary);
   font-family: "Monaco", monospace;
   padding: 20px;
@@ -372,11 +372,82 @@ label {
   border-radius: 15px;
   border: 1px solid var(--secondary);
   margin-top: 15px;
+  color: var(--primary);
+}
+
+.output-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.educational-output {
+  background: var(--bg-tertiary);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--secondary);
   white-space: pre-wrap;
   font-size: 0.9em;
-  max-height: 300px;
-  overflow-y: auto;
   color: var(--primary);
+}
+
+.educational-output pre {
+  margin: 0;
+  font-family: "Monaco", monospace;
+}
+
+.result-section {
+  background: var(--bg-tertiary);
+  padding: 15px;
+  border-radius: 8px;
+  border: 2px solid var(--secondary);
+  box-shadow: 0 2px 8px rgba(1, 179, 185, 0.3);
+}
+
+.result-header {
+  color: var(--secondary);
+  font-weight: bold;
+  font-size: 1.1em;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.result-box {
+  background: var(--bg-primary);
+  border: 1px solid var(--secondary);
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 12px;
+  word-break: break-all;
+  font-size: 0.9em;
+  color: var(--secondary);
+  font-family: "Monaco", monospace;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.copy-btn {
+  width: 100%;
+  background-color: var(--secondary);
+  color: black;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  font-family: "Monaco", monospace;
+  font-size: 0.95em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.copy-btn:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.copy-btn:active {
+  transform: scale(0.98);
 }
 
 /* Status (for CLI page) */

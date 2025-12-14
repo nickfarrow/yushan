@@ -1,6 +1,15 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
+/// Result from a command, separating educational output from copy-paste result
+#[derive(Debug, Clone)]
+pub struct CommandResult {
+    /// Educational output with explanations (🧠, ⚙️, ❄️, etc.)
+    pub output: String,
+    /// Clean JSON result for copy-pasting
+    pub result: String,
+}
+
 mod storage;
 mod keygen;
 mod signing;

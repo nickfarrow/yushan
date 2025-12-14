@@ -20,6 +20,8 @@ export function wasm_sign(session: string, message: string, data: string): strin
 
 export function wasm_sign_nonce(session: string): string;
 
+export function wasm_verify(signature: string, public_key: string, message: string): string;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
@@ -30,6 +32,7 @@ export interface InitOutput {
   readonly wasm_keygen_round2: (a: number, b: number) => [number, number, number, number];
   readonly wasm_sign: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
   readonly wasm_sign_nonce: (a: number, b: number) => [number, number, number, number];
+  readonly wasm_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
   readonly init: () => void;
   readonly test_wasm: () => [number, number];
   readonly __wbindgen_exn_store: (a: number) => void;
