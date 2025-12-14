@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FROST Bulletin Board</title>
+    <style>
+      :root {
+        --primary: #7cb3d5;
+        --frost-logo-primary: #00304d;
+        --secondary: #01b3b9e9;
+        --teriary: #d63384;
+        --bg-primary: #112d31;
+        --bg-secondary: #29aabb;
+        --bg-tertiary: #0a1f23;
+        --bg-card: #1a3d44;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background-color: var(--bg-primary);
+        background-image: linear-gradient(
+          to bottom,
+          var(--bg-secondary),
+          var(--bg-primary)
+        );
+        color: var(--primary);
+        font-family: "Monaco", monospace;
+        padding: 20px;
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+
+      .logo-box {
+        margin-top: 12px;
+        text-align: center;
+        margin-bottom: 2em;
+      }
+
+      .logo-box img {
+        max-width: 400px;
+        width: 100%;
+      }
+
+      .logo-box:hover {
+        filter: drop-shadow(0 -4px 8px var(--secondary));
+        border-radius: 15px;
+      }
+
+      h1 {
+        font-weight: bold;
+        color: #ffffff;
+        padding-top: 1em;
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 2em;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      h2 {
+        font-weight: bold;
+        color: var(--secondary);
+        text-shadow: 0.2px 0.2px 0.2px var(--primary),
+          0 0 0.05em var(--secondary), 0 0 0.05em var(--secondary);
+        padding-top: 1em;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: #e0f2f7;
+        margin-bottom: 30px;
+        font-size: 0.9em;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Config Section */
+      .config-section {
+        background-color: var(--bg-card);
+        border-radius: 15px;
+        padding: 15px;
+        color: var(--primary);
+        box-shadow: 0px -5px 7px 2px var(--secondary);
+        margin-bottom: 30px;
+      }
+
+      .config-header {
+        font-size: 1.2em;
+        color: var(--secondary);
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #666;
+        transition: background 0.3s;
+      }
+
+      .status-indicator.connected {
+        background: var(--secondary);
+      }
+
+      .config-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+
+      .config-field {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .config-field label {
+        color: var(--primary);
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .config-field input {
+        background-color: var(--bg-tertiary);
+        border: 1px solid var(--secondary);
+        color: var(--primary);
+        padding: 10px;
+        border-radius: 4px;
+        font-family: "Monaco", monospace;
+        font-size: 1em;
+        height: 40px;
+      }
+
+      .config-field input:focus {
+        outline: none;
+        border-color: var(--secondary);
+      }
+
+      .btn {
+        background-color: var(--secondary);
+        border-color: var(--secondary);
+        color: black;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 4px;
+        font-family: "Monaco", monospace;
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .btn:hover {
+        background-color: var(--secondary);
+        border-color: var(--secondary);
+      }
+
+      .btn:active {
+        transform: scale(0.98);
+      }
+
+      .btn-secondary {
+        background-color: var(--bg-tertiary);
+        color: var(--primary);
+        border: 1px solid var(--secondary);
+      }
+
+      .btn-secondary:hover {
+        background-color: var(--bg-primary);
+        border-color: var(--secondary);
+      }
+
+      /* Phase Sections */
+      .phase-section {
+        background-color: var(--bg-card);
+        border-radius: 15px;
+        padding: 15px;
+        color: var(--primary);
+        box-shadow: 0px -5px 7px 2px var(--secondary);
+        margin-bottom: 20px;
+      }
+
+      .phase-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--secondary);
+      }
+
+      .phase-title {
+        font-size: 1.3em;
+        font-weight: bold;
+        color: var(--secondary);
+      }
+
+      .phase-count {
+        color: var(--primary);
+        font-size: 0.9em;
+      }
+
+      .entries-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .entry {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--secondary);
+        border-radius: 15px;
+        padding: 12px;
+        font-size: 0.85em;
+      }
+
+      .entry-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        color: var(--primary);
+      }
+
+      .entry-party {
+        color: var(--secondary);
+        font-weight: bold;
+      }
+
+      .entry-time {
+        font-size: 0.85em;
+      }
+
+      .entry-data {
+        word-break: break-all;
+        color: var(--primary);
+        font-family: "Monaco", monospace;
+      }
+
+      .copy-section {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--secondary);
+        border-radius: 15px;
+        padding: 15px;
+        margin-top: 15px;
+      }
+
+      .copy-label {
+        color: var(--primary);
+        font-size: 0.85em;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .copy-output {
+        background: var(--bg-primary);
+        border: 1px solid var(--secondary);
+        border-radius: 15px;
+        padding: 10px;
+        margin-bottom: 10px;
+        word-break: break-all;
+        font-size: 0.8em;
+        max-height: 100px;
+        overflow-y: auto;
+        color: var(--secondary);
+      }
+
+      .empty-state {
+        text-align: center;
+        color: var(--primary);
+        padding: 40px;
+        font-style: italic;
+        opacity: 0.6;
+      }
+
+      /* Scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--bg-primary);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--secondary);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+      }
+
+      .warning {
+        background: var(--bg-card);
+        border: 2px solid var(--teriary);
+        color: var(--teriary);
+        padding: 10px;
+        border-radius: 15px;
+        margin-bottom: 15px;
+        font-size: 0.9em;
+      }
+
+      /* Post Box */
+      .post-box {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--secondary);
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+
+      .post-label {
+        color: var(--primary);
+        font-size: 0.85em;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .post-textarea {
+        width: 100%;
+        background: var(--bg-primary);
+        border: 1px solid var(--secondary);
+        color: var(--primary);
+        padding: 10px;
+        border-radius: 15px;
+        font-family: "Monaco", monospace;
+        font-size: 0.85em;
+        resize: vertical;
+        min-height: 80px;
+        margin-bottom: 10px;
+      }
+
+      .post-textarea:focus {
+        outline: none;
+        border-color: var(--secondary);
+      }
+
+      .post-textarea::placeholder {
+        color: var(--primary);
+        opacity: 0.5;
+      }
+
+      .footer-logo {
+        text-align: center;
+        margin-top: 2em;
+        padding: 1em;
+      }
+
+      .footer-logo img {
+        max-width: 200px;
+        width: 100%;
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo-box">
+        <img
+          src="https://frostsnap.com/assets/frostsnap-logo.svg"
+          alt="Frostsnap Logo"
+          class="logo"
+        />
+      </div>
+      <h1>FROST Bulletin Board</h1>
+      <div class="subtitle">
+        Distributed Key Generation & Threshold Signing Coordination
+      </div>
+
+      <!-- Config Section -->
+      <div class="config-section">
+        <div class="config-header">
+          <span class="status-indicator" id="status-indicator"></span>
+          <span>Configuration</span>
+          <span id="status-text" style="margin-left: auto; font-size: 0.8em"
+            >Disconnected</span
+          >
+        </div>
+
+        <div class="config-grid">
+          <div class="config-field">
+            <label>Room ID</label>
+            <input
+              type="text"
+              id="room-id"
+              placeholder="e.g., table-1, my-frost-session"
+              value="default-room"
+            />
+          </div>
+          <div class="config-field">
+            <label>Threshold (t)</label>
+            <input
+              type="number"
+              id="threshold"
+              placeholder="Minimum signers"
+              value="2"
+              min="1"
+            />
+          </div>
+          <div class="config-field">
+            <label>Total Parties (n)</label>
+            <input
+              type="number"
+              id="n-parties"
+              placeholder="Total participants"
+              value="3"
+              min="1"
+            />
+          </div>
+        </div>
+
+        <button class="btn" onclick="updateConfig()">Update & Subscribe</button>
+        <button
+          class="btn btn-secondary"
+          onclick="clearAll()"
+          style="margin-left: 10px"
+        >
+          Clear All Data
+        </button>
+      </div>
+
+      <div class="warning">
+        ⚠ Everyone must agree on the same threshold and n_parties values for the
+        protocol to work!
+      </div>
+
+      <!-- Keygen Round 1 -->
+      <div class="phase-section">
+        <div class="phase-header">
+          <div class="phase-title">Keygen Round 1: Commitments</div>
+          <div class="phase-count" id="round1-count">0 / 0</div>
+        </div>
+
+        <div class="post-box">
+          <div class="post-label">Post Your CLI Output</div>
+          <textarea
+            class="post-textarea"
+            id="round1-input"
+            placeholder='Paste your keygen-round1 JSON output here, e.g.: {"party_index": 1, "keygen_input": "hex...", "type": "keygen_round1"}'
+          ></textarea>
+          <button
+            class="btn"
+            onclick="postToNostr('round1-input', 'keygen_round1')"
+          >
+            Broadcast to Nostr
+          </button>
+        </div>
+
+        <div class="entries-container" id="round1-entries">
+          <div class="empty-state">
+            Waiting for parties to post their commitments...
+          </div>
+        </div>
+        <div class="copy-section" id="round1-copy-section">
+          <div class="copy-label">
+            Aggregated Commitments (Space-separated JSON)
+          </div>
+          <div class="copy-output" id="round1-output">No data yet</div>
+          <button
+            class="btn btn-secondary"
+            onclick="copyToClipboard('round1-output')"
+          >
+            Copy All
+          </button>
+        </div>
+      </div>
+
+      <!-- Keygen Round 2 -->
+      <div class="phase-section">
+        <div class="phase-header">
+          <div class="phase-title">Keygen Round 2: Keygen Shares</div>
+          <div class="phase-count" id="round2-count">0 / 0</div>
+        </div>
+
+        <div class="post-box">
+          <div class="post-label">Post Your CLI Output</div>
+          <textarea
+            class="post-textarea"
+            id="round2-input"
+            placeholder='Paste your keygen-round2 JSON output here, e.g.: {"party_index": 1, "shares": [...], "type": "keygen_round2"}'
+          ></textarea>
+          <button
+            class="btn"
+            onclick="postToNostr('round2-input', 'keygen_round2')"
+          >
+            Broadcast to Nostr
+          </button>
+        </div>
+
+        <div class="entries-container" id="round2-entries">
+          <div class="empty-state">
+            Waiting for parties to post their secret shares...
+          </div>
+        </div>
+        <div class="copy-section" id="round2-copy-section">
+          <div class="copy-label">Aggregated Shares (Space-separated JSON)</div>
+          <div class="copy-output" id="round2-output">No data yet</div>
+          <button
+            class="btn btn-secondary"
+            onclick="copyToClipboard('round2-output')"
+          >
+            Copy All
+          </button>
+        </div>
+      </div>
+
+      <!-- Signing Nonces -->
+      <div class="phase-section">
+        <div class="phase-header">
+          <div class="phase-title">Signing: Nonces</div>
+          <div class="phase-count" id="nonce-count">0 / 0</div>
+        </div>
+
+        <div class="post-box">
+          <div class="post-label">Post Your CLI Output</div>
+          <textarea
+            class="post-textarea"
+            id="nonce-input"
+            placeholder='Paste your sign-nonce JSON output here, e.g.: {"party_index": 1, "session": "msg1", "nonce": "hex...", "type": "signing_nonce"}'
+          ></textarea>
+          <button
+            class="btn"
+            onclick="postToNostr('nonce-input', 'signing_nonce')"
+          >
+            Broadcast to Nostr
+          </button>
+        </div>
+
+        <div class="entries-container" id="nonce-entries">
+          <div class="empty-state">Waiting for signers to post nonces...</div>
+        </div>
+        <div class="copy-section" id="nonce-copy-section">
+          <div class="copy-label">Aggregated Nonces (Space-separated JSON)</div>
+          <div class="copy-output" id="nonce-output">No data yet</div>
+          <button
+            class="btn btn-secondary"
+            onclick="copyToClipboard('nonce-output')"
+          >
+            Copy All
+          </button>
+        </div>
+      </div>
+
+      <!-- Signing Shares -->
+      <div class="phase-section">
+        <div class="phase-header">
+          <div class="phase-title">Signing: Signature Shares</div>
+          <div class="phase-count" id="sig-count">0 / 0</div>
+        </div>
+
+        <div class="post-box">
+          <div class="post-label">Post Your CLI Output</div>
+          <textarea
+            class="post-textarea"
+            id="sig-input"
+            placeholder='Paste your sign JSON output here, e.g.: {"party_index": 1, "session": "msg1", "signature_share": "hex...", "type": "signing_share"}'
+          ></textarea>
+          <button
+            class="btn"
+            onclick="postToNostr('sig-input', 'signing_share')"
+          >
+            Broadcast to Nostr
+          </button>
+        </div>
+
+        <div class="entries-container" id="sig-entries">
+          <div class="empty-state">
+            Waiting for signers to post signature shares...
+          </div>
+        </div>
+        <div class="copy-section" id="sig-copy-section">
+          <div class="copy-label">
+            Aggregated Signature Shares (Space-separated JSON)
+          </div>
+          <div class="copy-output" id="sig-output">No data yet</div>
+          <button
+            class="btn btn-secondary"
+            onclick="copyToClipboard('sig-output')"
+          >
+            Copy All
+          </button>
+        </div>
+      </div>
+
+      <div class="footer-logo">
+        <img
+          src="https://frostsnap.com/assets/small-stay-frosty.svg"
+          alt="Stay Frosty"
+        />
+      </div>
+    </div>
+
+    <script type="module">
+      import {
+        SimplePool,
+        generateSecretKey,
+        getPublicKey,
+        finalizeEvent,
+      } from "https://esm.sh/nostr-tools@2.7.2";
+
+      const RELAYS = [
+        "wss://relay.damus.io",
+        "wss://nos.lol",
+        "wss://relay.nostr.band",
+      ];
+
+      let pool = new SimplePool();
+      let currentSub = null;
+      let currentRoom = null;
+      let connected = false;
+
+      // Generate ephemeral keypair for signing Nostr events
+      const sk = generateSecretKey();
+      const pk = getPublicKey(sk);
+
+      // Data storage: phase -> party_index -> event
+      const phaseData = {
+        keygen_round1: new Map(),
+        keygen_round2: new Map(),
+        signing_nonce: new Map(),
+        signing_share: new Map(),
+      };
+
+      // Subscribe to Nostr events for the current room
+      window.updateConfig = function () {
+        const roomId = document.getElementById("room-id").value.trim();
+        const threshold = parseInt(document.getElementById("threshold").value);
+        const nParties = parseInt(document.getElementById("n-parties").value);
+
+        if (!roomId) {
+          alert("Please enter a room ID");
+          return;
+        }
+
+        if (threshold < 1 || nParties < 1 || threshold > nParties) {
+          alert("Invalid threshold or n_parties values");
+          return;
+        }
+
+        // Unsubscribe from previous room
+        if (currentSub) {
+          currentSub.close();
+        }
+
+        // Clear previous data
+        phaseData.keygen_round1.clear();
+        phaseData.keygen_round2.clear();
+        phaseData.signing_nonce.clear();
+        phaseData.signing_share.clear();
+
+        currentRoom = roomId;
+
+        // Subscribe to new room
+        console.log(`Subscribing to room: ${roomId}`);
+
+        currentSub = pool.subscribeMany(
+          RELAYS,
+          [
+            {
+              kinds: [1],
+              "#r": [roomId],
+              since: Math.floor(Date.now() / 1000) - 3600, // Last hour
+            },
+          ],
+          {
+            onevent(event) {
+              if (!connected) {
+                connected = true;
+                document
+                  .getElementById("status-indicator")
+                  .classList.add("connected");
+                document.getElementById("status-text").textContent =
+                  "Connected";
+                document.getElementById("status-text").style.color =
+                  "#01b3b9e9";
+              }
+
+              try {
+                const data = JSON.parse(event.content);
+                processEvent(data, event);
+              } catch (e) {
+                console.error("Failed to parse event:", e);
+              }
+            },
+            oneose() {
+              console.log("Initial sync complete");
+            },
+          }
+        );
+
+        refreshUI();
+      };
+
+      function processEvent(data, nostrEvent) {
+        const eventType = data.type;
+        const partyIndex = data.party_index;
+
+        if (!phaseData[eventType]) {
+          console.warn("Unknown event type:", eventType);
+          return;
+        }
+
+        // Deduplication: Keep earliest event for each party in each phase
+        const existing = phaseData[eventType].get(partyIndex);
+        if (existing && existing.created_at <= nostrEvent.created_at) {
+          return; // Already have an earlier event
+        }
+
+        phaseData[eventType].set(partyIndex, {
+          ...data,
+          created_at: nostrEvent.created_at,
+          nostr_id: nostrEvent.id,
+        });
+
+        refreshUI();
+      }
+
+      function refreshUI() {
+        const threshold = parseInt(document.getElementById("threshold").value);
+        const nParties = parseInt(document.getElementById("n-parties").value);
+
+        updatePhaseUI("keygen_round1", "round1", nParties);
+        updatePhaseUI("keygen_round2", "round2", nParties);
+        updatePhaseUI("signing_nonce", "nonce", threshold);
+        updatePhaseUI("signing_share", "sig", threshold);
+      }
+
+      function updatePhaseUI(phaseKey, uiPrefix, expectedCount) {
+        const data = phaseData[phaseKey];
+        const entriesEl = document.getElementById(`${uiPrefix}-entries`);
+        const countEl = document.getElementById(`${uiPrefix}-count`);
+        const outputEl = document.getElementById(`${uiPrefix}-output`);
+        const copySectionEl = document.getElementById(`${uiPrefix}-copy-section`);
+
+        // Update count
+        countEl.textContent = `${data.size} / ${expectedCount}`;
+
+        // Update count color based on completion
+        if (data.size >= expectedCount) {
+          countEl.style.color = "var(--secondary)";
+          countEl.style.fontWeight = "bold";
+        } else {
+          countEl.style.color = "var(--primary)";
+          countEl.style.fontWeight = "normal";
+        }
+
+        // Update entries display
+        if (data.size === 0) {
+          entriesEl.innerHTML = '<div class="empty-state">No data yet...</div>';
+        } else {
+          entriesEl.innerHTML = "";
+          const sortedEntries = Array.from(data.values()).sort(
+            (a, b) => a.party_index - b.party_index
+          );
+
+          sortedEntries.forEach((entry) => {
+            const entryDiv = document.createElement("div");
+            entryDiv.className = "entry";
+
+            const date = new Date(entry.created_at * 1000);
+            const timeStr = date.toLocaleTimeString();
+
+            entryDiv.innerHTML = `
+              <div class="entry-header">
+                <span class="entry-party">Party ${entry.party_index}</span>
+                <span class="entry-time">${timeStr}</span>
+              </div>
+              <div class="entry-data">${JSON.stringify(entry, null, 2)}</div>
+            `;
+
+            entriesEl.appendChild(entryDiv);
+          });
+        }
+
+        // Show/hide and update aggregated output section based on whether we have enough data
+        if (data.size >= expectedCount) {
+          copySectionEl.style.display = "block";
+          const jsonObjects = Array.from(data.values())
+            .sort((a, b) => a.party_index - b.party_index)
+            .map((entry) => {
+              // Remove our metadata before outputting
+              const clean = { ...entry };
+              delete clean.created_at;
+              delete clean.nostr_id;
+              return JSON.stringify(clean);
+            });
+
+          outputEl.textContent = jsonObjects.join(" ");
+        } else {
+          copySectionEl.style.display = "none";
+        }
+      }
+
+      window.copyToClipboard = function (elementId) {
+        const el = document.getElementById(elementId);
+        const text = el.textContent;
+
+        if (text === "No data yet") {
+          alert("No data to copy");
+          return;
+        }
+
+        navigator.clipboard.writeText(text).then(
+          () => {
+            // Visual feedback
+            const originalBg = el.style.background;
+            el.style.background = "#1a3a1a";
+            setTimeout(() => {
+              el.style.background = originalBg;
+            }, 200);
+          },
+          (err) => {
+            console.error("Failed to copy:", err);
+            alert("Failed to copy to clipboard");
+          }
+        );
+      };
+
+      window.clearAll = function () {
+        if (
+          !confirm("Clear all data for this session? This cannot be undone.")
+        ) {
+          return;
+        }
+
+        phaseData.keygen_round1.clear();
+        phaseData.keygen_round2.clear();
+        phaseData.signing_nonce.clear();
+        phaseData.signing_share.clear();
+
+        refreshUI();
+      };
+
+      window.postToNostr = async function (textareaId, expectedType) {
+        const textarea = document.getElementById(textareaId);
+        const content = textarea.value.trim();
+
+        if (!content) {
+          alert("Please paste your CLI output first");
+          return;
+        }
+
+        if (!currentRoom) {
+          alert("Please configure and subscribe to a room first");
+          return;
+        }
+
+        // Validate JSON
+        let data;
+        try {
+          data = JSON.parse(content);
+        } catch (e) {
+          alert(
+            "Invalid JSON. Please paste the output from your CLI exactly as shown."
+          );
+          return;
+        }
+
+        // Validate type matches
+        if (data.type !== expectedType) {
+          alert(
+            `Expected type "${expectedType}" but got "${data.type}". Make sure you're pasting the correct CLI output.`
+          );
+          return;
+        }
+
+        // Validate required fields
+        if (!data.party_index) {
+          alert("Missing party_index in JSON");
+          return;
+        }
+
+        // Create and publish Nostr event
+        try {
+          const event = finalizeEvent(
+            {
+              kind: 1,
+              created_at: Math.floor(Date.now() / 1000),
+              tags: [["r", currentRoom]],
+              content: content,
+            },
+            sk
+          );
+
+          await Promise.any(pool.publish(RELAYS, event));
+
+          // Clear textarea and show success
+          textarea.value = "";
+          textarea.style.borderColor = "#01b3b9e9";
+          setTimeout(() => {
+            textarea.style.borderColor = "#01b3b9e9";
+          }, 500);
+
+          console.log("Published event:", event.id);
+        } catch (e) {
+          console.error("Failed to publish:", e);
+          alert(
+            "Failed to publish to Nostr relays. Check console for details."
+          );
+        }
+      };
+
+      // Auto-connect on load with default values
+      window.addEventListener("load", () => {
+        updateConfig();
+      });
+    </script>
+  </body>
+</html>
