@@ -54,7 +54,7 @@ enum Commands {
     },
 
     /// Generate nonce for signing session
-    SignNonce {
+    GenerateNonce {
         /// Signing session ID (must be unique per signature)
         #[arg(long)]
         session: String,
@@ -100,7 +100,7 @@ fn main() -> Result<()> {
         Commands::KeygenFinalize { data } => {
             keygen::finalize(&data)?;
         }
-        Commands::SignNonce { session } => {
+        Commands::GenerateNonce { session } => {
             signing::generate_nonce(&session)?;
         }
         Commands::Sign {

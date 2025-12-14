@@ -88,7 +88,7 @@ pub fn wasm_keygen_finalize(data: String) -> Result<String, JsValue> {
 
 #[wasm_bindgen]
 #[cfg_attr(not(target_arch = "wasm32"), allow(unused_variables))]
-pub fn wasm_sign_nonce(session: String) -> Result<String, JsValue> {
+pub fn wasm_generate_nonce(session: String) -> Result<String, JsValue> {
     #[cfg(target_arch = "wasm32")]
     {
         use crate::storage::LocalStorageImpl;

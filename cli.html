@@ -140,7 +140,7 @@
         wasm_keygen_round1,
         wasm_keygen_round2,
         wasm_keygen_finalize,
-        wasm_sign_nonce,
+        wasm_generate_nonce,
         wasm_sign,
         wasm_combine,
       } from "./pkg/yushan.js";
@@ -254,7 +254,7 @@
       window.runSignNonce = async function () {
         try {
           const session = document.getElementById("sn-session").value;
-          const result = wasm_sign_nonce(session);
+          const result = wasm_generate_nonce(session);
           showOutput("sn-output", result);
         } catch (e) {
           showOutput("sn-output", "❌ Error: " + e);

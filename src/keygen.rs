@@ -270,7 +270,7 @@ pub fn round1_core(
         n_parties
     ));
     out.push_str("➜ Copy the \"all commitments\" JSON from webpage\n");
-    out.push_str("➜ Run: cargo run -- keygen-round2 --data '<JSON>'\n");
+    out.push_str("➜ Run: yushan keygen-round2 --data '<JSON>'\n");
 
     // Create JSON result for copy-pasting
     let output = Round1Output {
@@ -400,7 +400,7 @@ pub fn round2_core(data: &str, storage: &dyn Storage) -> Result<CommandResult> {
         "➜ Copy \"shares for Party {}\" JSON from webpage\n",
         state.my_index
     ));
-    out.push_str("➜ Run: cargo run -- keygen-finalize --data '<JSON>'\n");
+    out.push_str("➜ Run: yushan keygen-finalize --data '<JSON>'\n");
 
     // Save all commitments for validation
     storage.write("all_commitments.json", data.as_bytes())?;
@@ -521,6 +521,14 @@ pub fn finalize_core(data: &str, storage: &dyn Storage) -> Result<CommandResult>
 
     let agg_input = coordinator.finish().context("Coordinator not finished")?;
 
+    out.push_str("⚙️  Verifying keygen shares against commitments:\n");
+    out.push_str("🧠 Critical security check!\n");
+    out.push_str("   For each share f_i(j) received from party i:\n");
+    out.push_str("   • Verify: f_i(j)*G == C_0 + C_1*j + C_2*j² + ...\n");
+    out.push_str("   • Where [C_0, C_1, C_2, ...] are party i's commitments from Round 1\n");
+    out.push_str("   • This proves the share is consistent with the polynomial!\n");
+    out.push_str("   • Prevents malicious parties from sending bad shares\n\n");
+
     // Use SimplePedPop utility functions to properly create and pair the secret share
     let my_share_index = Scalar::<Secret, Zero>::from(state.my_index)
         .public()
@@ -529,8 +537,14 @@ pub fn finalize_core(data: &str, storage: &dyn Storage) -> Result<CommandResult>
 
     let secret_share = simplepedpop::collect_secret_inputs(my_share_index, secret_share_inputs);
 
+    out.push_str("⚙️  Calling simplepedpop::receive_secret_share()...\n");
+    out.push_str("   This verifies all shares and pairs them with the commitments\n\n");
+
     let paired_share = simplepedpop::receive_secret_share(&frost.schnorr, &agg_input, secret_share)
-        .map_err(|e| anyhow::anyhow!("Failed to receive secret share: {:?}", e))?;
+        .map_err(|e| anyhow::anyhow!("Share verification failed: {:?}", e))?;
+
+    out.push_str("❄️  All shares verified successfully!\n");
+    out.push_str("   Every share is cryptographically valid\n\n");
 
     let shared_key = agg_input.shared_key();
 

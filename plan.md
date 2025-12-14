@@ -34,6 +34,7 @@ The keygen flow uses these utility functions:
 ### WASM Architecture
 
 **Storage Abstraction Pattern:**
+
 ```rust
 // Trait for storage operations
 trait Storage {
@@ -47,6 +48,7 @@ LocalStorageImpl  // Uses web_sys::Storage for WASM
 ```
 
 **Function Structure:**
+
 ```rust
 // Core logic - storage and I/O agnostic
 pub fn round1_core(args..., storage: &dyn Storage) -> Result<String> {
@@ -74,6 +76,7 @@ pub fn wasm_round1(args...) -> Result<String, JsValue> {
 ```
 
 **Benefits:**
+
 - Zero code duplication between CLI and WASM
 - Core functions are testable in isolation
 - Educational output identical in both environments
@@ -91,8 +94,9 @@ Each phase outputs compact JSON that can be copy-pasted:
 - Sign: `{"party_index": 1, "session": "...", "signature_share": "hex...", "type": "signing_share"}`
 
 **CLI accepts space-separated input:** Multiple JSON objects separated by spaces, e.g.:
+
 ```
-cargo run -- keygen-round2 --my-index 1 --data '{"party_index":1,...} {"party_index":2,...} {"party_index":3,...}'
+yushan keygen-round2 --my-index 1 --data '{"party_index":1,...} {"party_index":2,...} {"party_index":3,...}'
 ```
 
 This makes the bulletin board **optional** - you can coordinate via terminal copy-paste alone!
@@ -150,7 +154,7 @@ This makes the bulletin board **optional** - you can coordinate via terminal cop
 **Round 1** (8 min):
 
 ```bash
-cargo run -- keygen-round1 --threshold 2 --n-parties 3 --my-index <1|2|3>
+yushan keygen-round1 --threshold 2 --n-parties 3 --my-index <1|2|3>
 ```
 
 Copy JSON → paste into bulletin board → wait for all 3
@@ -159,7 +163,7 @@ Copy JSON → paste into bulletin board → wait for all 3
 Bulletin board shows "Copy all commitments" button → click → get JSON
 
 ```bash
-cargo run -- keygen-round2 --my-index <N> --data '<JSON>'
+yushan keygen-round2 --my-index <N> --data '<JSON>'
 ```
 
 Paste shares into grid on bulletin board
@@ -168,7 +172,7 @@ Paste shares into grid on bulletin board
 Bulletin board aggregates shares for each party → "Copy shares for Party N"
 
 ```bash
-cargo run -- keygen-finalize --my-index <N> --data '<JSON>'
+yushan keygen-finalize --my-index <N> --data '<JSON>'
 ```
 
 Everyone sees their secret share + shared public key (should match!)
@@ -179,7 +183,7 @@ Everyone sees their secret share + shared public key (should match!)
 Decide message + which 2 parties will sign
 
 ```bash
-cargo run -- sign-nonce --my-index <N> --session "msg1"
+yushan generate-nonce --session "msg1"
 ```
 
 Paste nonces into bulletin board
@@ -188,7 +192,7 @@ Paste nonces into bulletin board
 Bulletin board shows "Copy nonces" → get JSON
 
 ```bash
-cargo run -- sign --my-index <N> --session "msg1" --message "Hello!" --data '<JSON>'
+yushan sign --my-index <N> --session "msg1" --message "Hello!" --data '<JSON>'
 ```
 
 Paste signature shares
@@ -197,7 +201,7 @@ Paste signature shares
 Anyone can combine:
 
 ```bash
-cargo run -- combine --message "Hello!" --data '<shares JSON>'
+yushan combine --message "Hello!" --data '<shares JSON>'
 ```
 
 ✅ Valid FROST signature!
@@ -243,6 +247,7 @@ Participants leave understanding:
 ### Completed Enhancements (✅)
 
 **Educational Output:**
+
 - ✅ Enhanced explanations throughout all commands (polynomials, commitments, nonces, Lagrange coefficients)
 - ✅ Added "🧠 What/Why" sections explaining the cryptographic concepts
 - ✅ Educational questions added to each phase:
@@ -255,6 +260,7 @@ Participants leave understanding:
 - ✅ Removed all green tick emojis
 
 **Technical Improvements:**
+
 - ✅ Using FROST coordinator API (`verify_and_combine_signature_shares`) for signature combination
 - ✅ Clean hex output for display (raw bytes) vs bincode for storage
 - ✅ Space-separated JSON format explained in CLI output
@@ -262,6 +268,7 @@ Participants leave understanding:
 - ✅ Renamed "Secret Shares" to "Keygen Shares" in Round 2 for clarity
 
 **WASM Implementation (✅ COMPLETE):**
+
 - ✅ All 6 CLI commands callable from browser (`/cli.html`)
 - ✅ Storage abstraction (FileStorage for CLI, LocalStorage for WASM)
 - ✅ Zero code duplication (core functions shared between CLI and WASM)
@@ -272,12 +279,14 @@ Participants leave understanding:
 ### Remaining TODOs:
 
 **Workshop Structure:**
+
 1. Introductions (me, Frostsnap, team)
 2. FROST & Sovereignty
 3. What we're going to be doing
 4. Tools and begin
 
 **Polish:**
+
 - More handholding in HTML UI
 - Frostsnap branding refinement
 - Hosting setup

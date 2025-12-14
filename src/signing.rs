@@ -79,7 +79,7 @@ pub fn generate_nonce_core(session: &str, storage: &dyn Storage) -> Result<Comma
         // ~hack to go back from scalar index to u32
         let mut u32_index_bytes = [0u8; 4];
         u32_index_bytes.copy_from_slice(&paired_share.index().to_bytes()[28..]);
-        
+
         u32::from_be_bytes(u32_index_bytes)
     };
 
@@ -131,7 +131,7 @@ pub fn generate_nonce_core(session: &str, storage: &dyn Storage) -> Result<Comma
         session
     ));
     out.push_str(&format!(
-        "➜ Run: cargo run -- sign --session {} --message \"<msg>\" --data '<JSON>'\n",
+        "➜ Run: yushan sign --session {} --message \"<msg>\" --data '<JSON>'\n",
         session
     ));
 
@@ -173,7 +173,7 @@ pub fn create_signature_share_core(
     // Load nonce
     let nonce_bytes = storage
         .read(&format!("nonce_{}.bin", session))
-        .context("Failed to load nonce. Did you run sign-nonce?")?;
+        .context("Failed to load nonce. Did you run generate-nonce?")?;
     let nonce: NonceKeyPair = bincode::deserialize(&nonce_bytes)?;
 
     // Load paired secret share
@@ -184,7 +184,7 @@ pub fn create_signature_share_core(
         // ~hack to go back from scalar index to u32
         let mut u32_index_bytes = [0u8; 4];
         u32_index_bytes.copy_from_slice(&paired_share.index().to_bytes()[28..]);
-        
+
         u32::from_be_bytes(u32_index_bytes)
     };
 
@@ -337,7 +337,7 @@ pub fn create_signature_share_core(
     out.push_str("➜ Paste the result JSON into the webpage\n");
     out.push_str("➜ Once all signers post shares, anyone can combine them\n");
     out.push_str(&format!(
-        "➜ Run: cargo run -- combine --message \"{}\" --data '<shares JSON>'\n",
+        "➜ Run: yushan combine --message \"{}\" --data '<shares JSON>'\n",
         message
     ));
 

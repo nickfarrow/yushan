@@ -21,17 +21,30 @@
       <div class="subtitle">
         Distributed Key Generation & Threshold Signing Coordination
       </div>
-      <div class="header-links">
-        <b
-          ><a href="https://github.com/nickfarrow/yushan" target="_blank"
-            >Get the CLI tool</a
-          >
-        </b>
-        <a href="/cli.html"
-          >Im allergic to crustaceans 🦀 (use browser tools)</a
-        >
+
+      <!-- Instructions -->
+      <div class="instructions-section">
+        <div class="phase-header">
+          <div class="phase-title">Instructions</div>
+        </div>
+        <p></p>
+        <ol>
+          <li>
+            Download and build:
+            <div class="header-links">
+              <b
+                ><a href="https://github.com/nickfarrow/yushan" target="_blank"
+                  >Workshop CLI Tool</a
+                >
+              </b>
+              <a href="/cli.html"
+                >(or im allergic to crustaceans 🦀 (use browser tools))</a
+              >
+            </div>
+          </li>
+          <li>Check out the tools available</li>
+        </ol>
       </div>
-      <br />
 
       <!-- Config Section -->
       <div class="config-section">
@@ -101,7 +114,11 @@
 
         <div class="post-box">
           <div class="post-label">
-            Run: <code>cargo run -- keygen-round1 --threshold 2 --n-parties 3 --my-index &lt;your-index&gt;</code>
+            Run:
+            <code
+              >yushan keygen-round1 --threshold 2 --n-parties 3 --my-index
+              &lt;your-index&gt;</code
+            >
           </div>
           <textarea
             class="post-textarea"
@@ -144,7 +161,11 @@
 
         <div class="post-box">
           <div class="post-label">
-            Run: <code>cargo run -- keygen-round2 --my-index &lt;your-index&gt; --data '&lt;all-commitments&gt;'</code>
+            Run:
+            <code
+              >yushan keygen-round2 --my-index &lt;your-index&gt; --data
+              '&lt;all-commitments&gt;'</code
+            >
           </div>
           <textarea
             class="post-textarea"
@@ -187,12 +208,12 @@
 
         <div class="post-box">
           <div class="post-label">
-            Run: <code>cargo run -- sign-nonce --session "msg1"</code>
+            Run: <code>yushan generate-nonce --session "msg1"</code>
           </div>
           <textarea
             class="post-textarea"
             id="nonce-input"
-            placeholder='Paste your sign-nonce JSON output here, e.g.: {"party_index": 1, "session": "msg1", "nonce": "hex...", "type": "signing_nonce"}'
+            placeholder='Paste your generate-nonce JSON output here, e.g.: {"party_index": 1, "session": "msg1", "nonce": "hex...", "type": "signing_nonce"}'
           ></textarea>
           <button
             class="btn"
@@ -226,7 +247,11 @@
 
         <div class="post-box">
           <div class="post-label">
-            Run: <code>cargo run -- sign --session "msg1" --message "Hello!" --data '&lt;all-nonces&gt;'</code>
+            Run:
+            <code
+              >yushan sign --session "msg1" --message "Hello!" --data
+              '&lt;all-nonces&gt;'</code
+            >
           </div>
           <textarea
             class="post-textarea"
