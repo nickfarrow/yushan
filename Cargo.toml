@@ -16,8 +16,8 @@ clap = { version = "4.5", features = ["derive"] }
 anyhow = "1.0"
 
 # FROST cryptography
-schnorr_fun = { path = "../secp256kfun/schnorr_fun", features = ["serde", "bincode"] }
-secp256kfun = { path = "../secp256kfun/secp256kfun", features = ["serde", "bincode"] }
+schnorr_fun = { version = "0.12.0", features = ["serde", "bincode"] }
+secp256kfun = { version = "0.12.0", features = ["serde", "bincode"] }
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
